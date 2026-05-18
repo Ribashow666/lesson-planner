@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planejador de Aulas</title>
+  <link rel="icon" type="image/png" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg1: #0a0e1a;
+      --bg2: #0d1424;
+      --glass: rgba(255,255,255,0.06);
+      --glass-hover: rgba(255,255,255,0.10);
+      --glass-border: rgba(255,255,255,0.12);
+      --glass-strong: rgba(255,255,255,0.15);
+      --accent: #7c6dfa;
+      --accent2: #a78bfa;
+      --accent-glow: rgba(124,109,250,0.35);
+      --teal: #2dd4bf;
+      --teal-glow: rgba(45,212,191,0.25);
+      --pink: #f472b6;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #475569;
+      --danger: #f87171;
+      --success: #34d399;
+      --r: 16px;
+      --r-sm: 10px;
+      --blur: blur(20px);
+      --blur-sm: blur(12px);
+      --font: 'Outfit', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--text);
+      min-height: 100vh;
+      background: var(--bg1);
+      overflow-x: hidden;
+    }
+
+    /* Animated mesh background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,109,250,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(45,212,191,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 60% 30%, rgba(244,114,182,0.10) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glass mixin */
+    .glass {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+    }
+
+    /* Layout */
+    .app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: rgba(10,14,26,0.7);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-right: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 16px;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px;
+      margin-bottom: 36px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--accent-glow);
+      flex-shrink: 0;
+    }
+
+    .logo-text { font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+    .logo-sub { font-size: 11px; color: var(--text-dim); font-weight: 400; }
+
+    .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      position: relative;
+    }
+
+    .nav-item:hover { background: var(--glass); color: var(--text); }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(124,109,250,0.2), rgba(45,212,191,0.1));
+      color: var(--accent2);
+      border: 1px solid rgba(124,109,250,0.25);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 25%; bottom: 25%;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--accent), var(--teal));
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .sidebar-footer {
+      font-size: 11px;
+      color: var(--text-dim);
+      padding: 16px 8px 0;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    /* Main */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+
+    /* Topbar */
+    .topbar {
+      padding: 20px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10,14,26,0.6);
+      backdrop-filter: var(--blur-sm);
+      -webkit-backdrop-filter: var(--blur-sm);
+      border-bottom: 1px solid var(--glass-border);
+      position: sticky; top: 0; z-index: 50;
+    }
+
+    .topbar-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .topbar-title span {
+      background: linear-gradient(135deg, var(--accent2), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 18px;
+      border-radius: var(--r-sm);
+      font-family: var(--font);
+      font-size: 14px; font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #6457e8);
+      color: #fff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px var(--accent-glow); }
+
+    .btn-ghost {
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      color: var(--text-muted);
+      border: 1px solid var(--glass-border);
+    }
+    .btn-ghost:hover { background: var(--glass-hover); color: var(--text); }
+
+    .btn-danger {
+      background: rgba(248,113,113,0.12);
+      color: var(--danger);
+      border: 1px solid rgba(248,113,113,0.2);
+    }
+    .btn-danger:hover { background: rgba(248,113,113,0.22); }
+
+    .btn-ai {
+      background: linear-gradient(135deg, rgba(124,109,250,0.25), rgba(45,212,191,0.15));
+      color: var(--accent2);
+      border: 1px solid rgba(124,109,250,0.3);
+    }
+    .btn-ai:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--accent-glow); border-color: rgba(124,109,250,0.5); }
+    .btn-ai:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn svg { width: 15px; height: 15px; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+    /* Page */
+    .page { padding: 32px 36px; flex: 1; }
+    .page-hidden { display: none; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+
+    .stat-card {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .stat-card:hover { border-color: var(--glass-strong); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    }
+
+    .stat-num {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label { font-size: 12px; color: var(--text-dim); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+
+    /* Filters */
+    .filters-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-label { font-size: 11px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; }
+
+    .input, .select {
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      -webkit-backdrop-filter: var(--blur-sm);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 8px 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .input:focus, .select:focus { border-color: rgba(124,109,250,0.5); box-shadow: 0 0 0 3px rgba(124,109,250,0.1); }
+    .input::placeholder { color: var(--text-dim); }
+    .select { cursor: pointer; padding-right: 32px; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: calc(100% - 10px) center; }
+    .search-input { width: 240px; }
+
+    /* Table */
+    .table-wrap {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      overflow: hidden;
+      position: relative;
+    }
+    .table-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: rgba(255,255,255,0.04); }
+    th {
+      padding: 13px 18px;
+      text-align: left;
+      font-size: 11px; font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    th:hover { color: var(--text-muted); }
+    th.sorted { color: var(--accent2); }
+
+    td {
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .plan-title { font-weight: 600; color: var(--text); }
+
+    .tag {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 11px; font-weight: 500;
+      background: rgba(124,109,250,0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(124,109,250,0.25);
+      margin: 2px;
+    }
+
+    .actions-cell { display: flex; gap: 6px; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; gap: 6px; margin-top: 20px; justify-content: center; }
+    .page-btn {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      color: var(--text-muted);
+      font-size: 14px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .page-btn:hover:not(:disabled) { border-color: rgba(124,109,250,0.4); color: var(--accent2); }
+    .page-btn.active { background: linear-gradient(135deg, var(--accent), #6457e8); color: #fff; border-color: transparent; box-shadow: 0 2px 12px var(--accent-glow); }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .pagination-info { font-size: 13px; color: var(--text-dim); margin: 0 6px; }
+
+    /* Empty */
+    .empty { padding: 72px 40px; text-align: center; }
+    .empty-icon { font-size: 44px; margin-bottom: 14px; opacity: 0.3; }
+    .empty-title { font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .empty-sub { font-size: 14px; color: var(--text-dim); }
+
+    /* Overlay / Modal */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(5,8,18,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 40px 20px;
+      overflow-y: auto;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .overlay.show { opacity: 1; }
+    .overlay.hidden { display: none; }
+
+    .modal {
+      background: rgba(13,20,36,0.85);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      width: 100%; max-width: 720px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+      transform: translateY(24px);
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .modal::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,109,250,0.5), rgba(45,212,191,0.3), transparent);
+    }
+    .overlay.show .modal { transform: translateY(0); }
+
+    .modal-header {
+      padding: 24px 28px 18px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-title { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+
+    .modal-close {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-size: 16px;
+    }
+    .modal-close:hover { background: var(--glass-hover); color: var(--text); }
+
+    .modal-body { padding: 24px 28px; }
+    .modal-footer { padding: 18px 28px; border-top: 1px solid var(--glass-border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* AI Banner */
+    .ai-banner {
+      background: linear-gradient(135deg, rgba(124,109,250,0.12), rgba(45,212,191,0.08));
+      border: 1px solid rgba(124,109,250,0.25);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      margin-bottom: 22px;
+      display: flex; align-items: center; gap: 14px;
+      position: relative; overflow: hidden;
+    }
+    .ai-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,109,250,0.5), transparent);
+    }
+    .ai-banner-icon { font-size: 22px; flex-shrink: 0; }
+    .ai-banner-title { font-weight: 600; color: var(--accent2); font-size: 14px; margin-bottom: 2px; }
+    .ai-banner-sub { font-size: 13px; color: var(--text-muted); }
+
+    /* AI Loading */
+    .ai-loading { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; gap: 18px; }
+    .ai-loading.show { display: flex; }
+
+    .ai-orb {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      box-shadow: 0 0 30px var(--accent-glow);
+      animation: orb-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes orb-pulse {
+      0%,100% { transform: scale(1); box-shadow: 0 0 30px var(--accent-glow); }
+      50% { transform: scale(1.15); box-shadow: 0 0 50px var(--accent-glow), 0 0 80px rgba(45,212,191,0.2); }
+    }
+    .ai-loading-text { font-size: 14px; color: var(--text-muted); animation: fade-pulse 1.5s ease-in-out infinite; }
+    @keyframes fade-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .form-grid .col-span-2 { grid-column: span 2; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.5px; text-transform: uppercase; }
+    .form-label .req { color: var(--accent2); margin-left: 2px; }
+
+    .textarea {
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      -webkit-backdrop-filter: var(--blur-sm);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 10px 13px;
+      outline: none;
+      transition: all 0.2s;
+      resize: vertical;
+      min-height: 88px;
+      line-height: 1.6;
+    }
+    .textarea:focus { border-color: rgba(124,109,250,0.5); box-shadow: 0 0 0 3px rgba(124,109,250,0.1); }
+    .textarea::placeholder { color: var(--text-dim); }
+
+    .field-error { font-size: 12px; color: var(--danger); margin-top: 2px; display: none; }
+    .field-error.show { display: block; }
+    .input.error, .textarea.error { border-color: rgba(248,113,113,0.5); }
+
+    /* Tags input */
+    .tags-wrap {
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      padding: 7px 10px;
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      transition: all 0.2s; cursor: text; min-height: 40px;
+    }
+    .tags-wrap:focus-within { border-color: rgba(124,109,250,0.5); box-shadow: 0 0 0 3px rgba(124,109,250,0.1); }
+    .tags-raw { border: none; background: none; color: var(--text); font-family: var(--font); font-size: 14px; outline: none; flex: 1; min-width: 80px; }
+    .tags-raw::placeholder { color: var(--text-dim); }
+    .tag-rm { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 500; background: rgba(124,109,250,0.15); color: var(--accent2); border: 1px solid rgba(124,109,250,0.25); }
+    .tag-x { cursor: pointer; opacity: 0.6; line-height: 1; font-size: 14px; }
+    .tag-x:hover { opacity: 1; }
+
+    /* Detail view */
+    .detail-header { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 28px; }
+    .detail-meta { flex: 1; }
+    .detail-title { font-size: 30px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .detail-sub { font-size: 14px; color: var(--text-muted); }
+    .detail-actions { display: flex; gap: 10px; flex-shrink: 0; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .detail-card {
+      background: var(--glass);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      padding: 22px;
+    }
+    .detail-card.full { grid-column: span 2; }
+    .detail-card-label { font-size: 11px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px; }
+    .detail-card-content { font-size: 14px; line-height: 1.75; white-space: pre-wrap; color: var(--text-muted); }
+
+    /* Confirm */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(5,8,18,0.8);
+      backdrop-filter: blur(10px);
+      z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .confirm-overlay.hidden { display: none; }
+    .confirm-box {
+      background: rgba(13,20,36,0.9);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r);
+      padding: 36px;
+      max-width: 400px; width: 90%;
+      text-align: center;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+      position: relative; overflow: hidden;
+    }
+    .confirm-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(248,113,113,0.5), transparent); }
+    .confirm-icon { font-size: 38px; margin-bottom: 14px; }
+    .confirm-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .confirm-text { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+    .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+    /* Toast */
+    .toasts { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+    .toast {
+      padding: 13px 18px;
+      border-radius: var(--r-sm);
+      font-size: 14px; font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      animation: slide-up 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      max-width: 340px;
+      display: flex; align-items: center; gap: 10px;
+      backdrop-filter: var(--blur);
+      border: 1px solid;
+    }
+    @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } }
+    .toast-success { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.25); color: var(--success); }
+    .toast-error { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.25); color: var(--danger); }
+    .toast-info { background: rgba(124,109,250,0.12); border-color: rgba(124,109,250,0.25); color: var(--accent2); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .col-span-2 { grid-column: span 1; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-card.full { grid-column: span 1; }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+      .page { padding: 20px; }
+      .topbar { padding: 14px 20px; }
+    }
+    /* Estilos do Perfil no Rodapé da Sidebar */
+    .sidebar-profile {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 4px;
+    }
+
+    .profile-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--teal));
+      box-shadow: 0 0 12px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .profile-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .profile-role {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .profile-links {
+      display: flex;
+      gap: 8px;
+      padding: 0 4px;
+    }
+
+    .profile-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--r-sm);
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .profile-link-btn:hover {
+      background: var(--glass-hover);
+      color: var(--accent2);
+      border-color: rgba(124,109,250,0.4);
+      transform: translateY(-1px);
+    }
+
+    .profile-link-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .sidebar-footer-text {
+      font-size: 11px;
+      color: var(--text-dim);
+      padding-left: 4px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">✦</div>
+      <div><div class="logo-text">Planejar</div><div class="logo-sub">Gestão de Aulas</div></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="navigate('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Todos os Planos
+      </button>
+      <button class="nav-item" onclick="openCreateModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Plano
+      </button>
+    </nav>
+    <div class="sidebar-profile">
+      <div class="profile-info">
+        <div class="profile-avatar">AR</div>
+        <div>
+          <div class="profile-name">Ailton Ribas</div>
+          <div class="profile-role">Dev</div>
+        </div>
+      </div>
+      
+      <div class="profile-links">
+        <a href="https://github.com/Ribashow666" target="_blank" class="profile-link-btn" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        </a>
+        <a href="https://linkedin.com/in/ailton-guilherme" target="_blank" class="profile-link-btn" title="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+        </a>
+        <a href="mailto:guilherme_ribas12@hotmail.com" class="profile-link-btn" title="E-mail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </a>
+      </div>
+      
+      <div class="sidebar-footer-text">v1.0.0 · Node.js + OpenRouter</div>
+    </div>  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="topbar-title">Planos de <span>Aula</span></h1>
+      <button class="btn btn-primary" onclick="openCreateModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo Plano
+      </button>
+    </header>
+
+    <div id="page-list" class="page">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total de Planos</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-this-month">—</div><div class="stat-label">Este Mês</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-disciplines">—</div><div class="stat-label">Disciplinas</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-upcoming">—</div><div class="stat-label">Próximas Aulas</div></div>
+      </div>
+
+      <div class="filters-bar">
+        <div class="filter-group">
+          <span class="filter-label">Buscar</span>
+          <input type="text" class="input search-input" id="search-input" placeholder="Buscar por título..." oninput="debounceFilter()" />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Disciplina</span>
+          <select class="select" id="filter-discipline" onchange="applyFilters()">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Tag</span>
+          <input type="text" class="input" id="filter-tag" placeholder="ex: redes" style="width:140px" oninput="debounceFilter()" />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Data de</span>
+          <input type="date" class="input" id="filter-date-from" onchange="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Data até</span>
+          <input type="date" class="input" id="filter-date-to" onchange="applyFilters()" />
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Ordenar</span>
+          <select class="select" id="sort-by" onchange="applyFilters()">
+            <option value="created_at">Data de Cadastro</option>
+            <option value="title">Título</option>
+            <option value="scheduled_date">Data Prevista</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Ordem</span>
+          <select class="select" id="sort-order" onchange="applyFilters()">
+            <option value="desc">Decrescente</option>
+            <option value="asc">Crescente</option>
+          </select>
+        </div>
+        <div class="filter-group" style="align-self:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Limpar</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="toggleSort('title')" id="th-title">Título</th>
+              <th>Disciplina</th>
+              <th>Tags</th>
+              <th onclick="toggleSort('scheduled_date')" id="th-date">Data Prevista</th>
+              <th onclick="toggleSort('created_at')" id="th-created">Cadastrado</th>
+              <th style="width:130px">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="plans-tbody">
+            <tr><td colspan="6"><div class="empty"><div class="empty-icon">✦</div><div class="empty-title">Carregando...</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <div id="page-detail" class="page page-hidden"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay hidden" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Novo Plano de Aula</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ai-banner">
+        <div class="ai-banner-icon">✦</div>
+        <div style="flex:1">
+          <div class="ai-banner-title">Smart Assist — IA Pedagógica</div>
+          <div class="ai-banner-sub">Preencha título, disciplina e ementa, depois clique para gerar sugestões automáticas.</div>
+        </div>
+        <button class="btn btn-ai" id="btn-ai" onclick="generateAIRecommendations()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2 7h7l-5.5 4 2 7L12 16l-5.5 4 2-7L3 9h7z"/></svg>
+          Gerar Recomendações
+        </button>
+      </div>
+
+      <div class="ai-loading" id="ai-loading">
+        <div class="ai-orb"></div>
+        <div class="ai-loading-text">Assistente pedagógico pensando...</div>
+      </div>
+
+      <div id="form-content">
+        <form id="plan-form" class="form-grid" onsubmit="handleFormSubmit(event)">
+          <div class="form-field">
+            <label class="form-label">Título da Aula <span class="req">*</span></label>
+            <input type="text" class="input" id="f-title" placeholder="Ex: Introdução ao OSPF" />
+            <span class="field-error" id="err-title">Título é obrigatório</span>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Disciplina <span class="req">*</span></label>
+            <input type="text" class="input" id="f-discipline" placeholder="Ex: Redes de Computadores" />
+            <span class="field-error" id="err-discipline">Disciplina é obrigatória</span>
+          </div>
+          <div class="form-field col-span-2">
+            <label class="form-label">Objetivo <span class="req">*</span></label>
+            <textarea class="textarea" id="f-objective" placeholder="Descreva o objetivo principal da aula..."></textarea>
+            <span class="field-error" id="err-objective">Objetivo é obrigatório</span>
+          </div>
+          <div class="form-field col-span-2">
+            <label class="form-label">Ementa / Resumo <span class="req">*</span></label>
+            <textarea class="textarea" id="f-summary" placeholder="Descreva o conteúdo que será abordado..."></textarea>
+            <span class="field-error" id="err-summary">Ementa é obrigatória</span>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Data Prevista <span class="req">*</span></label>
+            <input type="date" class="input" id="f-date" />
+            <span class="field-error" id="err-date">Data é obrigatória</span>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Tags</label>
+            <div class="tags-wrap" id="tags-wrap" onclick="document.getElementById('tags-raw').focus()">
+              <input type="text" class="tags-raw" id="tags-raw" placeholder="Adicionar tag (Enter)" onkeydown="handleTagInput(event)" />
+            </div>
+            <span style="font-size:12px;color:var(--text-dim)">Pressione Enter para adicionar</span>
+          </div>
+          <div class="form-field col-span-2">
+            <label class="form-label">Conteúdos Complementares</label>
+            <textarea class="textarea" id="f-contents" placeholder="Gerado automaticamente pela IA..." style="min-height:110px"></textarea>
+          </div>
+          <div class="form-field col-span-2">
+            <label class="form-label">Recursos de Apoio</label>
+            <textarea class="textarea" id="f-resources" placeholder="Gerado automaticamente pela IA..."></textarea>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-save" onclick="handleFormSubmit(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar Plano
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div class="confirm-overlay hidden" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Excluir Plano?</div>
+    <div class="confirm-text">Esta ação não pode ser desfeita. O plano será removido permanentemente.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const API = '/api';
+let currentPage = 1;
+let editingId = null;
+let deleteTargetId = null;
+let formTags = [];
+let filterDebounce;
+let sortBy = 'created_at';
+let sortOrder = 'desc';
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: { message: 'Erro desconhecido' } }));
+    throw new Error(err.error?.message || 'Erro na requisição');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function showToast(msg, type = 'success') {
+  const icons = { success: '✓', error: '✕', info: '✦' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function navigate(page) {
+  document.querySelectorAll('[id^=page-]').forEach(p => p.classList.add('page-hidden'));
+  document.getElementById('page-' + page)?.classList.remove('page-hidden');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (page === 'list') {
+    document.querySelector('.nav-item:first-child').classList.add('active');
+    loadPlans();
+  }
+}
+
+async function loadPlans(page = currentPage) {
+  currentPage = page;
+  const params = new URLSearchParams({ page, limit: 10, sort_by: sortBy, sort_order: sortOrder });
+  const search = document.getElementById('search-input').value.trim();
+  const discipline = document.getElementById('filter-discipline').value;
+  const tag = document.getElementById('filter-tag').value.trim();
+  const dateFrom = document.getElementById('filter-date-from').value;
+  const dateTo = document.getElementById('filter-date-to').value;
+  if (search) params.set('search', search);
+  if (discipline) params.set('discipline', discipline);
+  if (tag) params.set('tag', tag);
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+  try {
+    const res = await api(`/lesson-plans?${params}`);
+    renderTable(res.data);
+    renderPagination(res.pagination);
+    updateStats(res.pagination.total, res.data);
+    updateDisciplineFilter(res.data);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+function renderTable(plans) {
+  const tbody = document.getElementById('plans-tbody');
+  if (!plans.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">✦</div><div class="empty-title">Nenhum plano encontrado</div><div class="empty-sub">Crie seu primeiro plano clicando em "Novo Plano"</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = plans.map(p => `
+    <tr>
+      <td><div class="plan-title">${esc(p.title)}</div></td>
+      <td style="color:var(--text-muted);font-size:13px">${esc(p.discipline)}</td>
+      <td>${(p.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</td>
+      <td style="color:var(--text-muted);font-size:13px">${fmtDate(p.scheduled_date)}</td>
+      <td style="color:var(--text-dim);font-size:13px">${fmtDate(p.created_at)}</td>
+      <td><div class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick='viewPlan(${JSON.stringify(p)})'>Ver</button>
+        <button class="btn btn-ghost btn-sm" onclick='openEditModal(${JSON.stringify(p)})'>Editar</button>
+        <button class="btn btn-danger btn-sm" onclick="openConfirm('${p.id}')">Excluir</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderPagination({ total, page, limit, total_pages }) {
+  const el = document.getElementById('pagination');
+  if (total_pages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="loadPlans(${page-1})" ${page<=1?'disabled':''}>‹</button>`;
+  for (let i = 1; i <= total_pages; i++) {
+    if (i===1||i===total_pages||Math.abs(i-page)<=2) html+=`<button class="page-btn ${i===page?'active':''}" onclick="loadPlans(${i})">${i}</button>`;
+    else if (Math.abs(i-page)===3) html+=`<span style="color:var(--text-dim);padding:0 4px">…</span>`;
+  }
+  html+=`<button class="page-btn" onclick="loadPlans(${page+1})" ${page>=total_pages?'disabled':''}>›</button>`;
+  html+=`<span class="pagination-info">${total} plano${total!==1?'s':''}</span>`;
+  el.innerHTML = html;
+}
+
+function updateStats(total, plans) {
+  document.getElementById('stat-total').textContent = total;
+  const now = new Date();
+  document.getElementById('stat-this-month').textContent = plans.filter(p => {
+    const d = new Date(p.scheduled_date);
+    return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+  }).length;
+  document.getElementById('stat-disciplines').textContent = new Set(plans.map(p=>p.discipline)).size;
+  document.getElementById('stat-upcoming').textContent = plans.filter(p=>new Date(p.scheduled_date)>=now).length;
+}
+
+function updateDisciplineFilter(plans) {
+  const sel = document.getElementById('filter-discipline');
+  const cur = sel.value;
+  const disciplines = [...new Set(plans.map(p=>p.discipline).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todas</option>' + disciplines.map(d=>`<option value="${esc(d)}" ${d===cur?'selected':''}>${esc(d)}</option>`).join('');
+}
+
+function debounceFilter() { clearTimeout(filterDebounce); filterDebounce = setTimeout(applyFilters, 400); }
+function applyFilters() { sortBy=document.getElementById('sort-by').value; sortOrder=document.getElementById('sort-order').value; loadPlans(1); }
+function clearFilters() { ['search-input','filter-tag','filter-date-from','filter-date-to'].forEach(id=>document.getElementById(id).value=''); document.getElementById('filter-discipline').value=''; loadPlans(1); }
+function toggleSort(col) { if(sortBy===col)sortOrder=sortOrder==='asc'?'desc':'asc'; else{sortBy=col;sortOrder='asc';} document.getElementById('sort-by').value=sortBy; document.getElementById('sort-order').value=sortOrder; loadPlans(1); }
+
+function viewPlan(p) {
+  const page = document.getElementById('page-detail');
+  page.innerHTML = `
+    <div class="detail-header">
+      <button class="btn btn-ghost" onclick="navigate('list')" style="flex-shrink:0">← Voltar</button>
+      <div class="detail-meta">
+        <div class="detail-title">${esc(p.title)}</div>
+        <div class="detail-sub">📚 ${esc(p.discipline)} · 📅 ${fmtDate(p.scheduled_date)}</div>
+        <div style="margin-top:8px">${(p.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn btn-ghost" onclick='openEditModal(${JSON.stringify(p)})'>Editar</button>
+        <button class="btn btn-danger" onclick="openConfirm('${p.id}')">Excluir</button>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-card"><div class="detail-card-label">Objetivo</div><div class="detail-card-content">${esc(p.objective)}</div></div>
+      <div class="detail-card"><div class="detail-card-label">Ementa / Resumo</div><div class="detail-card-content">${esc(p.summary)}</div></div>
+      <div class="detail-card full"><div class="detail-card-label">Conteúdos Complementares</div><div class="detail-card-content">${esc(p.contents||'Não informado')}</div></div>
+      <div class="detail-card full"><div class="detail-card-label">Recursos de Apoio</div><div class="detail-card-content">${esc(p.support_resources||'Não informado')}</div></div>
+    </div>`;
+  navigate('detail');
+  document.querySelector('.nav-item:first-child').classList.remove('active');
+}
+
+function openCreateModal() {
+  editingId = null; formTags = [];
+  document.getElementById('modal-title').textContent = 'Novo Plano de Aula';
+  document.getElementById('plan-form').reset();
+  document.getElementById('f-contents').value = '';
+  document.getElementById('f-resources').value = '';
+  renderTagsUI(); clearErrors(); showModal();
+}
+
+function openEditModal(p) {
+  editingId = p.id; formTags = p.tags||[];
+  document.getElementById('modal-title').textContent = 'Editar Plano de Aula';
+  document.getElementById('f-title').value = p.title||'';
+  document.getElementById('f-discipline').value = p.discipline||'';
+  document.getElementById('f-objective').value = p.objective||'';
+  document.getElementById('f-summary').value = p.summary||'';
+  document.getElementById('f-date').value = p.scheduled_date?p.scheduled_date.substring(0,10):'';
+  document.getElementById('f-contents').value = p.contents||'';
+  document.getElementById('f-resources').value = p.support_resources||'';
+  renderTagsUI(); clearErrors(); showModal();
+}
+
+function showModal() {
+  const o = document.getElementById('modal-overlay');
+  o.classList.remove('hidden');
+  setTimeout(()=>o.classList.add('show'),10);
+  document.getElementById('ai-loading').classList.remove('show');
+  document.getElementById('form-content').style.display = '';
+}
+
+function closeModal() {
+  const o = document.getElementById('modal-overlay');
+  o.classList.remove('show');
+  setTimeout(()=>o.classList.add('hidden'),200);
+}
+
+function handleOverlayClick(e) { if(e.target===document.getElementById('modal-overlay'))closeModal(); }
+
+function renderTagsUI() {
+  const wrap = document.getElementById('tags-wrap');
+  const input = document.getElementById('tags-raw');
+  wrap.innerHTML = '';
+  formTags.forEach((t,i) => {
+    const span = document.createElement('span');
+    span.className = 'tag-rm';
+    span.innerHTML = `${esc(t)} <span class="tag-x" onclick="removeTag(${i})">×</span>`;
+    wrap.appendChild(span);
+  });
+  wrap.appendChild(input);
+}
+
+function handleTagInput(e) {
+  if(e.key==='Enter'){e.preventDefault();const v=e.target.value.trim();if(v&&!formTags.includes(v)){formTags.push(v);renderTagsUI();}e.target.value='';}
+}
+
+function removeTag(i) { formTags.splice(i,1); renderTagsUI(); }
+
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(el=>el.classList.remove('show'));
+  document.querySelectorAll('.input.error,.textarea.error').forEach(el=>el.classList.remove('error'));
+}
+
+function showError(field, errId) { document.getElementById(field).classList.add('error'); document.getElementById(errId).classList.add('show'); }
+
+function validateForm() {
+  clearErrors(); let valid = true;
+  if(!document.getElementById('f-title').value.trim()){showError('f-title','err-title');valid=false;}
+  if(!document.getElementById('f-discipline').value.trim()){showError('f-discipline','err-discipline');valid=false;}
+  if(!document.getElementById('f-objective').value.trim()){showError('f-objective','err-objective');valid=false;}
+  if(!document.getElementById('f-summary').value.trim()){showError('f-summary','err-summary');valid=false;}
+  if(!document.getElementById('f-date').value){showError('f-date','err-date');valid=false;}
+  return valid;
+}
+
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  if(!validateForm()) return;
+  const payload = {
+    title: document.getElementById('f-title').value.trim(),
+    discipline: document.getElementById('f-discipline').value.trim(),
+    objective: document.getElementById('f-objective').value.trim(),
+    summary: document.getElementById('f-summary').value.trim(),
+    scheduled_date: document.getElementById('f-date').value,
+    contents: document.getElementById('f-contents').value.trim(),
+    support_resources: document.getElementById('f-resources').value.trim(),
+    tags: formTags,
+  };
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = editingId ? 'Salvando...' : 'Criando...';
+  try {
+    if(editingId) { await api(`/lesson-plans/${editingId}`,{method:'PUT',body:JSON.stringify(payload)}); showToast('Plano atualizado!'); }
+    else { await api('/lesson-plans',{method:'POST',body:JSON.stringify(payload)}); showToast('Plano criado!'); }
+    closeModal(); loadPlans(1);
+  } catch(e) { showToast(e.message,'error'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Plano`;
+  }
+}
+
+async function generateAIRecommendations() {
+  const title = document.getElementById('f-title').value.trim();
+  const discipline = document.getElementById('f-discipline').value.trim();
+  const summary = document.getElementById('f-summary').value.trim();
+  if(!title||!discipline||!summary){
+    showToast('Preencha Título, Disciplina e Ementa primeiro.','info');
+    if(!title)document.getElementById('f-title').classList.add('error');
+    if(!discipline)document.getElementById('f-discipline').classList.add('error');
+    if(!summary)document.getElementById('f-summary').classList.add('error');
+    return;
+  }
+  document.getElementById('btn-ai').disabled = true;
+  document.getElementById('ai-loading').classList.add('show');
+  document.getElementById('form-content').style.display = 'none';
+  try {
+    const res = await api('/ai/recommend',{method:'POST',body:JSON.stringify({title,discipline,summary})});
+    document.getElementById('f-contents').value = res.data.contents||'';
+    document.getElementById('f-resources').value = res.data.support_resources||'';
+    if(res.data.tags&&Array.isArray(res.data.tags)){formTags=res.data.tags;renderTagsUI();}
+    showToast('✦ Recomendações geradas com sucesso!');
+  } catch(e) { showToast('Erro: '+e.message,'error'); }
+  finally {
+    document.getElementById('btn-ai').disabled = false;
+    document.getElementById('ai-loading').classList.remove('show');
+    document.getElementById('form-content').style.display = '';
+  }
+}
+
+function openConfirm(id) { deleteTargetId=id; document.getElementById('confirm-overlay').classList.remove('hidden'); }
+function closeConfirm() { deleteTargetId=null; document.getElementById('confirm-overlay').classList.add('hidden'); }
+async function confirmDelete() {
+  if(!deleteTargetId) return;
+  try { await api(`/lesson-plans/${deleteTargetId}`,{method:'DELETE'}); showToast('Plano excluído.','info'); closeConfirm(); navigate('list'); }
+  catch(e) { showToast(e.message,'error'); }
+}
+
+function esc(s) { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(s) { if(!s)return'—'; try{const d=new Date(s.includes('T')?s:s+'T00:00:00');return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});}catch{return s;} }
+
+loadPlans();
+</script>
+</body>
+</html>

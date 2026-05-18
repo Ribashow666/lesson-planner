@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lesson-planner-backend
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_PATH=/app/data/lesson_plans.db
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - db-data:/app/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lesson-planner-frontend
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  db-data:
+    name: lesson-planner-db
+
+networks:
+  app-network:
+    driver: bridge
