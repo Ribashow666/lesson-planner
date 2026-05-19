@@ -9,8 +9,8 @@
 | Camada | Tecnologia |
 |--------|-----------|
 | Backend | Node.js 20 + Express 4 |
-| Banco de Dados | SQLite (via better-sqlite3) |
-| IA / Smart Assist | Anthropic Claude API (claude-sonnet-4) |
+| Banco de Dados | SQLite (via sql.js) |
+| IA / Smart Assist | OpenRouter API (modelos gratuitos) |
 | Frontend | SPA puro (HTML + CSS + JS vanilla) |
 | Servidor Web | Nginx (proxy reverso) |
 | Containerização | Docker + Docker Compose |
@@ -29,7 +29,7 @@
 ### Smart Assist (IA Pedagógica)
 - ✅ Botão "Gerar Recomendações" no formulário
 - ✅ Envia Título + Disciplina + Ementa para o backend
-- ✅ Backend consulta Claude API com prompt de Assistente Pedagógico
+- ✅ Backend consulta a OpenRouter API com prompt de Assistente Pedagógico
 - ✅ Retorna: Conteúdos complementares, Recursos de apoio, 3 Tags recomendadas
 - ✅ Preenche os campos automaticamente
 - ✅ Loading state visual enquanto a IA processa
@@ -54,7 +54,7 @@
 
 ### Pré-requisitos
 - Docker e Docker Compose instalados
-- Chave de API da Anthropic ([console.anthropic.com](https://console.anthropic.com))
+- Chave de API gratuita do OpenRouter ([openrouter.ai/keys](https://openrouter.ai/keys))
 
 ### 1. Clone o repositório
 ```bash
@@ -65,7 +65,7 @@ cd lesson-planner
 ### 2. Configure as variáveis de ambiente
 ```bash
 cp .env.example .env
-# Edite .env e preencha ANTHROPIC_API_KEY com sua chave real
+# Edite .env e preencha OPENROUTER_API_KEY com sua chave real
 ```
 
 ### 3. Suba a aplicação (único comando)
@@ -91,7 +91,7 @@ lesson-planner/
 │   │   │   ├── lessonPlans.js     # CRUD completo + filtros/paginação
 │   │   │   └── ai.js             # Endpoint Smart Assist
 │   │   ├── services/
-│   │   │   └── aiService.js      # Integração Claude API + prompt engineering
+│   │   │   └── aiService.js      # Integração OpenRouter API + prompt engineering
 │   │   ├── utils/
 │   │   │   └── logger.js         # Winston logger estruturado
 │   │   └── index.js              # Entry point Express
@@ -194,13 +194,16 @@ GET /health
 ## Decisões Técnicas
 
 ### Por que SQLite?
-Para um sistema de gerenciamento de planos de aula, o SQLite é suficiente e elimina dependências externas. A biblioteca `better-sqlite3` é síncrona, simplificando o código e oferecendo excelente performance para esse volume de dados.
+Para um sistema de gerenciamento de planos de aula, o SQLite é suficiente e elimina dependências externas. A biblioteca `sql.js` é pura JavaScript (sem bindings nativos), o que garante compatibilidade total com Docker Alpine sem etapas de compilação.
 
 ### Por que SPA vanilla (sem framework)?
 O requisito pede uma SPA, mas sem especificar React/Vue/etc. Uma SPA vanilla bem estruturada tem zero build step, carrega instantaneamente e demonstra domínio dos fundamentos do JavaScript — adequado para o contexto do desafio.
 
+### Por que OpenRouter?
+O OpenRouter fornece acesso unificado e gratuito a dezenas de modelos de IA (Llama, Mistral, etc.) através de uma única API compatível com OpenAI. O modelo `openrouter/free` seleciona automaticamente o melhor modelo gratuito disponível no momento da requisição.
+
 ### Prompt Engineering
-O sistema instrui Claude a se comportar como um "Assistente Pedagógico" e a responder **exclusivamente em JSON** com estrutura definida. O backend valida e parseia a resposta com tratamento de fallback caso o modelo inclua formatação extra.
+O sistema instrui a IA a se comportar como um "Assistente Pedagógico" e a responder **exclusivamente em JSON** com estrutura definida. O backend valida e parseia a resposta com tratamento de fallback via regex caso o modelo inclua formatação extra.
 
 ### Segurança
 - Chave da API em variável de ambiente (`.env` no `.gitignore`)
@@ -223,7 +226,7 @@ O pipeline no GitHub Actions executa a cada push:
 ```bash
 cd backend
 npm install
-cp ../.env.example .env   # configure ANTHROPIC_API_KEY
+cp ../.env.example .env   # configure OPENROUTER_API_KEY
 node src/index.js
 
 # Abra frontend/index.html no browser
