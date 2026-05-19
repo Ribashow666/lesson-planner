@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Planejador de Aulas</title>
-  <link rel="icon" type="image/png" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -293,6 +292,54 @@
     .select { cursor: pointer; padding-right: 32px; appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: calc(100% - 10px) center; }
+
+    /* Custom dropdown */
+    .custom-select { position: relative; }
+    .custom-select-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px;
+      background: var(--glass);
+      backdrop-filter: var(--blur-sm);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      padding: 8px 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      min-width: 140px;
+    }
+    .custom-select-btn:hover { border-color: rgba(124,109,250,0.4); }
+    .custom-select-btn.open { border-color: rgba(124,109,250,0.5); box-shadow: 0 0 0 3px rgba(124,109,250,0.1); }
+    .custom-select-btn svg { width: 12px; height: 12px; flex-shrink: 0; opacity: 0.6; transition: transform 0.2s; }
+    .custom-select-btn.open svg { transform: rotate(180deg); }
+    .custom-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      min-width: 100%;
+      background: rgba(13,20,36,0.97);
+      backdrop-filter: var(--blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      z-index: 500;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .custom-dropdown.open { display: block; }
+    .custom-option {
+      padding: 9px 14px;
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: var(--font);
+    }
+    .custom-option:hover { background: rgba(124,109,250,0.15); color: var(--text); }
+    .custom-option.selected { color: var(--accent2); background: rgba(124,109,250,0.1); }
     .search-input { width: 240px; }
 
     /* Table */
@@ -599,86 +646,6 @@
       .page { padding: 20px; }
       .topbar { padding: 14px 20px; }
     }
-    /* Estilos do Perfil no Rodapé da Sidebar */
-    .sidebar-profile {
-      margin-top: auto;
-      padding-top: 16px;
-      border-top: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 0 4px;
-    }
-
-    .profile-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--teal));
-      box-shadow: 0 0 12px var(--accent-glow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.5px;
-    }
-
-    .profile-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .profile-role {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
-
-    .profile-links {
-      display: flex;
-      gap: 8px;
-      padding: 0 4px;
-    }
-
-    .profile-link-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: var(--r-sm);
-      background: var(--glass);
-      border: 1px solid var(--glass-border);
-      color: var(--text-muted);
-      transition: all 0.2s;
-    }
-
-    .profile-link-btn:hover {
-      background: var(--glass-hover);
-      color: var(--accent2);
-      border-color: rgba(124,109,250,0.4);
-      transform: translateY(-1px);
-    }
-
-    .profile-link-btn svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .sidebar-footer-text {
-      font-size: 11px;
-      color: var(--text-dim);
-      padding-left: 4px;
-      margin-top: 4px;
-    }
   </style>
 </head>
 <body>
@@ -698,29 +665,8 @@
         Novo Plano
       </button>
     </nav>
-    <div class="sidebar-profile">
-      <div class="profile-info">
-        <div class="profile-avatar">AR</div>
-        <div>
-          <div class="profile-name">Ailton Ribas</div>
-          <div class="profile-role">Dev</div>
-        </div>
-      </div>
-      
-      <div class="profile-links">
-        <a href="https://github.com/Ribashow666" target="_blank" class="profile-link-btn" title="GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-        </a>
-        <a href="https://linkedin.com/in/ailton-guilherme" target="_blank" class="profile-link-btn" title="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-        </a>
-        <a href="mailto:guilherme_ribas12@hotmail.com" class="profile-link-btn" title="E-mail">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-        </a>
-      </div>
-      
-      <div class="sidebar-footer-text">v1.0.0 · Node.js + OpenRouter</div>
-    </div>  </aside>
+    <div class="sidebar-footer">v1.0.0 · Node.js + OpenRouter</div>
+  </aside>
 
   <div class="main">
     <header class="topbar">
@@ -746,9 +692,13 @@
         </div>
         <div class="filter-group">
           <span class="filter-label">Disciplina</span>
-          <select class="select" id="filter-discipline" onchange="applyFilters()">
-            <option value="">Todas</option>
-          </select>
+          <div class="custom-select" id="custom-discipline-wrap">
+            <button class="custom-select-btn" id="custom-discipline-btn" onclick="toggleDisciplineDropdown()">
+              <span id="custom-discipline-label">Todas</span>
+              <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>
+            </button>
+            <div class="custom-dropdown" id="custom-discipline-dropdown"></div>
+          </div>
         </div>
         <div class="filter-group">
           <span class="filter-label">Tag</span>
@@ -944,12 +894,12 @@ async function loadPlans(page = currentPage) {
   currentPage = page;
   const params = new URLSearchParams({ page, limit: 10, sort_by: sortBy, sort_order: sortOrder });
   const search = document.getElementById('search-input').value.trim();
-  const discipline = document.getElementById('filter-discipline').value;
+  // discipline handled via selectedDiscipline
   const tag = document.getElementById('filter-tag').value.trim();
   const dateFrom = document.getElementById('filter-date-from').value;
   const dateTo = document.getElementById('filter-date-to').value;
   if (search) params.set('search', search);
-  if (discipline) params.set('discipline', discipline);
+  if (selectedDiscipline) params.set('discipline', selectedDiscipline);
   if (tag) params.set('tag', tag);
   if (dateFrom) params.set('date_from', dateFrom);
   if (dateTo) params.set('date_to', dateTo);
@@ -1007,16 +957,47 @@ function updateStats(total, plans) {
   document.getElementById('stat-upcoming').textContent = plans.filter(p=>new Date(p.scheduled_date)>=now).length;
 }
 
-function updateDisciplineFilter(plans) {
-  const sel = document.getElementById('filter-discipline');
-  const cur = sel.value;
-  const disciplines = [...new Set(plans.map(p=>p.discipline).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">Todas</option>' + disciplines.map(d=>`<option value="${esc(d)}" ${d===cur?'selected':''}>${esc(d)}</option>`).join('');
+let selectedDiscipline = '';
+
+function toggleDisciplineDropdown() {
+  const btn = document.getElementById('custom-discipline-btn');
+  const dd = document.getElementById('custom-discipline-dropdown');
+  btn.classList.toggle('open');
+  dd.classList.toggle('open');
 }
+
+function selectDiscipline(val, label) {
+  selectedDiscipline = val;
+  document.getElementById('custom-discipline-label').textContent = label;
+  document.getElementById('custom-discipline-btn').classList.remove('open');
+  document.getElementById('custom-discipline-dropdown').classList.remove('open');
+  document.querySelectorAll('.custom-option').forEach(o => {
+    o.classList.toggle('selected', o.dataset.val === val);
+  });
+  applyFilters();
+}
+
+function updateDisciplineFilter(plans) {
+  const disciplines = [...new Set(plans.map(p=>p.discipline).filter(Boolean))].sort();
+  const dd = document.getElementById('custom-discipline-dropdown');
+  const options = [{ val: '', label: 'Todas' }, ...disciplines.map(d => ({ val: d, label: d }))];
+  dd.innerHTML = options.map(o =>
+    `<div class="custom-option ${o.val===selectedDiscipline?'selected':''}" data-val="${esc(o.val)}" onclick="selectDiscipline('${esc(o.val)}','${esc(o.label)}')">${esc(o.label)}</div>`
+  ).join('');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('custom-discipline-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('custom-discipline-btn')?.classList.remove('open');
+    document.getElementById('custom-discipline-dropdown')?.classList.remove('open');
+  }
+});
 
 function debounceFilter() { clearTimeout(filterDebounce); filterDebounce = setTimeout(applyFilters, 400); }
 function applyFilters() { sortBy=document.getElementById('sort-by').value; sortOrder=document.getElementById('sort-order').value; loadPlans(1); }
-function clearFilters() { ['search-input','filter-tag','filter-date-from','filter-date-to'].forEach(id=>document.getElementById(id).value=''); document.getElementById('filter-discipline').value=''; loadPlans(1); }
+function clearFilters() { ['search-input','filter-tag','filter-date-from','filter-date-to'].forEach(id=>document.getElementById(id).value=''); selectDiscipline('','Todas'); loadPlans(1); }
 function toggleSort(col) { if(sortBy===col)sortOrder=sortOrder==='asc'?'desc':'asc'; else{sortBy=col;sortOrder='asc';} document.getElementById('sort-by').value=sortBy; document.getElementById('sort-order').value=sortOrder; loadPlans(1); }
 
 function viewPlan(p) {
